@@ -1,6 +1,7 @@
 import argparse
 import sys
 
+import PIL
 from PIL import Image
 
 
@@ -12,7 +13,14 @@ def main():
     height = parameters['height']
     scale = parameters['scale']
 
-    image = Image.open(path)
+    try:
+        image = Image.open(path)
+    except PIL.UnidentifiedImageError:
+        print('There is something wrong with your image. '
+              'May be it is not an image at all.'
+              'Please restart the script with another one.')
+        return 0
+
     original_size = image.size
 
     size_parameters_key = (bool(scale), bool(width), bool(height))
@@ -24,7 +32,7 @@ def main():
 
     if size_parameters_key == (False, False, False):
         raise Exception('I need some positive parameters to work with. '
-                        'Please restart script with right parameters.')
+                        'Please restart the script with right parameters.')
 
     elif size_parameters_key in wrong_combination_keys:
         raise Exception('I can not resize your image with '
