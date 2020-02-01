@@ -16,10 +16,9 @@ def main():
     try:
         image = Image.open(path)
     except PIL.UnidentifiedImageError:
-        print('There is something wrong with your image. '
-              'May be it is not an image at all.'
-              'Please restart the script with another one.')
-        return 0
+        raise Exception('There is something wrong with your image. '
+                        'May be it is not an image at all.'
+                        'Please restart the script with another one.')
 
     original_size = image.size
 
@@ -41,7 +40,7 @@ def main():
                         'with just the scale parameter '
                         'or with one or both of the width and height parameters.')
 
-    elif size_parameters_key == (True, False, False):
+    if size_parameters_key == (True, False, False):
         output_size = count_image_size_by_scaling(original_size=original_size,
                                                   scale=scale)
     elif size_parameters_key == (False, True, False):
