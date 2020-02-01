@@ -23,39 +23,21 @@ def main():
     original_size = image.size
 
     size_parameters_key = (bool(scale), bool(width), bool(height))
-    wrong_combination_keys = [
-        (True, True, False),  # combination of scale and width
-        (True, False, True),  # combination of scale and height
-        (True, True, True)  # combination of scale, width and height
-    ]
+    keys_functions = {
+        (True, True, False): wrong_key_combination_exception,
+        (True, False, True): wrong_key_combination_exception,
+        (True, True, True): wrong_key_combination_exception,
+        (False, False, False): no_positive_parameters_exception,
+        (True, False, False): count_image_size_by_scaling,
+        (False, True, False): count_image_size_by_width,
+        (False, False, True): count_image_size_by_height,
+        (False, True, True): count_image_size_by_width_and_height
+    }
 
-    if size_parameters_key == (False, False, False):
-        raise Exception('I need some positive parameters to work with. '
-                        'Please restart the script with right parameters.')
-
-    elif size_parameters_key in wrong_combination_keys:
-        raise Exception('I can not resize your image with '
-                        'such combination of parameters. '
-                        'Please restart the script either '
-                        'with just the scale parameter '
-                        'or with one or both of the width and height parameters.')
-
-    if size_parameters_key == (True, False, False):
-        output_size = count_image_size_by_scaling(original_size=original_size,
-                                                  scale=scale)
-    elif size_parameters_key == (False, True, False):
-        output_size = count_image_size_by_width(original_size=original_size,
-                                                new_width=width)
-    elif size_parameters_key == (False, False, True):
-        output_size = count_image_size_by_height(original_size=original_size,
-                                                 new_height=height)
-    elif size_parameters_key == (False, True, True):
-        output_size = (height, width)
-        original_size_proportions = get_proportion(size=original_size)
-        output_size_proportions = get_proportion(size=output_size)
-        if output_size_proportions != original_size_proportions:
-            print('Preparation: With changing size by such parameters '
-                  'of width and height will change the image proportions')
+    output_size = keys_functions[size_parameters_key](original_size=original_size,
+                                                      scale=scale,
+                                                      new_height=height,
+                                                      new_width=width)
 
     resize_and_save_image(image=image,
                           output_size=output_size,
@@ -83,13 +65,52 @@ def resize_and_save_image(image: Image,
         new_image_name))
 
 
-def count_image_size_by_scaling(original_size: tuple, scale: int):
+def wrong_key_combination_exception(original_size: tuple,
+                                    scale: tuple,
+                                    new_height: int,
+                                    new_width: int):
+    raise Exception('I can not resize your image with '
+                    'such combination of parameters. '
+                    'Please restart the script either '
+                    'with just the scale parameter '
+                    'or with one or both of the width and height parameters.')
+
+
+def no_positive_parameters_exception(original_size: tuple,
+                                     scale: tuple,
+                                     new_height: int,
+                                     new_width: int):
+    raise Exception('I need some positive parameters to work with. '
+                    'Please restart the script with right parameters.')
+
+
+def count_image_size_by_scaling(original_size: tuple,
+                                scale: tuple,
+                                new_height: int,
+                                new_width: int):
     output_size = tuple([scale * x for x in original_size])
 
     return output_size
 
 
-def count_image_size_by_width(original_size: tuple, new_width: int):
+def count_image_size_by_width_and_height(original_size: tuple,
+                                         scale: tuple,
+                                         new_height: int,
+                                         new_width: int):
+    output_size = (new_width, new_height)
+    original_size_proportions = get_proportion(size=original_size)
+    output_size_proportions = get_proportion(size=output_size)
+    if output_size_proportions != original_size_proportions:
+        print('Preparation: With changing size by such parameters '
+              'of width and height will change the image proportions')
+
+    return output_size
+
+
+def count_image_size_by_width(original_size: tuple,
+                              scale: tuple,
+                              new_height: int,
+                              new_width: int):
     proportion = get_proportion(size=original_size)
     new_height = new_width / proportion
     output_size = (new_width, new_height)
@@ -97,7 +118,10 @@ def count_image_size_by_width(original_size: tuple, new_width: int):
     return output_size
 
 
-def count_image_size_by_height(original_size: tuple, new_height: int):
+def count_image_size_by_height(original_size: tuple,
+                               scale: tuple,
+                               new_height: int,
+                               new_width: int):
     proportion = get_proportion(size=original_size)
     new_width = round(new_height * proportion)
     output_size = (new_width, new_height)
