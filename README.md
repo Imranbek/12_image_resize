@@ -17,7 +17,7 @@ Remember, it is recommended to use [virtualenv/venv](https://devman.org/encyclop
 For start script you need to run the script in console/terminal.
 
 ```bash
-$ python image_resuze.py 1.JPG -s 1
+$ python image_resuze.py example.JPG -s 1
 ```
 
 Also you can find full list of parameters by running:
@@ -26,7 +26,8 @@ $ python image_resuze.py -h
 ```
 
 # Rules of logic
-This script can't resize your image with entered combination of scale and size parameters. 
+1. This script works only with images.
+2. This script can't resize your image with combination of entered scale and size parameters. 
 It can work only with just the scale parameter or with one or both of the width and height parameters.
 
 # Project Goals
