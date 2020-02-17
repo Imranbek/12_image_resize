@@ -7,7 +7,11 @@ from PIL import Image
 
 def main():
     parameters = parse_parameters()
-    check_arguments_are_positive(parameters=parameters)
+    parameters_are_positive = check_parameters_are_positive(parameters=parameters)
+    if not parameters_are_positive:
+        exit('One or more numeric parameters are negative, \n'
+             'please restart script with positive numeric parameters.')
+
     path = parameters.path
     output_path = parameters.output
     width = parameters.width
@@ -176,15 +180,13 @@ def parse_parameters():
     return parameters
 
 
-def check_arguments_are_positive(parameters: Namespace):
-    arguments_are_positive = True
+def check_parameters_are_positive(parameters: Namespace):
+    parameters_are_positive = True
     for _, value in parameters.__dict__.items():
         if (value is not None) and (type(value) is not str):
-            arguments_are_positive = (abs(value) == value) * arguments_are_positive
+            parameters_are_positive = (abs(value) == value) * parameters_are_positive
 
-    if not arguments_are_positive:
-        exit('One or more numeric parameters are negative, \n'
-             'please restart script with positive numeric parameters.')
+    return parameters_are_positive
 
 
 if __name__ == '__main__':
