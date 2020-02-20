@@ -1,5 +1,5 @@
 import argparse
-from argparse import Namespace
+import math
 
 import PIL
 from PIL import Image
@@ -7,16 +7,17 @@ from PIL import Image
 
 def main():
     parameters = parse_parameters()
-    parameters_are_positive = check_parameters_are_positive(parameters=parameters)
-    if not parameters_are_positive:
-        exit('One or more numeric parameters are negative, \n'
-             'please restart script with positive numeric parameters.')
 
     path = parameters.path
     output_path = parameters.output
     width = parameters.width
     height = parameters.height
     scale = parameters.scale
+
+    for parameter in [width, height, scale]:
+        assert check_value_none_or_positive_number(parameter), \
+            'One ore more parameters are negative. ' \
+            'Please restart script with positive numeric parameters.'
 
     image = open_image_by_path(path=path)
     original_size = image.size
@@ -45,12 +46,17 @@ def main():
         output_size=output_size,
     )
 
+    new_file_name = get_new_image_name_with_size(
+        image=image,
+        size=output_size)
+
     if output_path:
-        output_path_name = output_path + image.filename
+        output_path_name = output_path + new_file_name
     else:
+        old_file_name = image.filename
         output_path_name = path.replace(
-            image.filename,
-            get_new_image_name(image),
+            old_file_name,
+            new_file_name,
         )
 
     save_image_with_path_name(
@@ -67,11 +73,12 @@ def change_image_size(image: Image,
     return new_image
 
 
-def get_new_image_name(image: Image, ):
+def get_new_image_name_with_size(image: Image,
+                                 size: tuple,
+                                 ):
     image_name = image.filename
-    image_size = image.size
-    new_image_name = image_name.replace('.', '_{}x{}.'.format(image_size[0],
-                                                              image_size[1]))
+    new_image_name = image_name.replace('.', '_{}x{}.'.format(size[0],
+                                                              size[1]))
     return new_image_name
 
 
@@ -158,9 +165,9 @@ def count_image_size_by_height(original_size: tuple,
 def compare_proportions(size_1, size_2):
     size_1_proportions = get_proportion(size=size_1)
     size_2_proportions = get_proportion(size=size_2)
-    if str(size_1_proportions) != str(size_2_proportions):
+    if not math.isclose(size_1_proportions, size_2_proportions):
         print('Preparation: With changing size by such parameters '
-              'of width and height will change the image proportions')
+              'of width and height will change the image proportions.')
 
 
 def get_proportion(size: tuple):
@@ -180,13 +187,11 @@ def parse_parameters():
     return parameters
 
 
-def check_parameters_are_positive(parameters: Namespace):
-    parameters_are_positive = True
-    for _, value in parameters.__dict__.items():
-        if (value is not None) and (type(value) is not str):
-            parameters_are_positive = (abs(value) == value) * parameters_are_positive
+def check_value_none_or_positive_number(parameter_value):
+    if parameter_value is None:
+        return True
 
-    return parameters_are_positive
+    return parameter_value > 0
 
 
 if __name__ == '__main__':
